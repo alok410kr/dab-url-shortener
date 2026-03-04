@@ -9,7 +9,9 @@ export const getUserByEmail = async (email)=>{
                                     id: usersTable.id,
                                     firstname: usersTable.firstname,
                                     lastname: usersTable.lastname,
-                                    email: usersTable.email
+                                    email: usersTable.email,
+                                    salt: usersTable.salt,
+                                    password: usersTable.password
 })
                                 .from(usersTable)
                                 .where(eq(email,usersTable.email));
