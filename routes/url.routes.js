@@ -1,18 +1,12 @@
 import express from 'express'
 import { shortenPostRequestBodySchema } from '../validation/request.validation.js';
-import db from '../db/index.js';
 import { nanoid } from 'nanoid';
-import { urlsTable } from '../models/url.model.js';
+import { ensureAuthenticated } from '../middlewares/auth.middleware.js';
+import { createCode } from '../services/url.service.js';
 
 const router = express.Router();
 
-router.post('/shorten', async (req,res)=>{
-    const userId = req.user?.id;
-
-    if(!userId) 
-        return res
-            .status(401)
-            .json({error: `You must be logged-in`})
+router.post('/shorten', ensureAuthenticated, async (req,res)=>{
 
 const validationResult = await shortenPostRequestBodySchema.safeParseAsync(req.body)
 
@@ -26,18 +20,7 @@ const {url, code} = validationResult.data;
 
 const shortCode = code ?? nanoid(6);
 
-const [result] = await db.insert(urlsTable)
-.values({
-    shortCode,
-    targetURL: url,
-    userId: req.user.id
-
-})
-.returning({
-    id: urlsTable.id,
-    shortCode: urlsTable.shortCode,
-    targetURL: urlsTable.targetURL,
-});
+const result = await createCode(shortCode, url, req.user.id);
 
 return res
     .status(201)
